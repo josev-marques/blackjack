@@ -39,7 +39,7 @@ public class Deck {
         for (Card c_Card : m_Deck) {
             v_Str.append(c_Card.toString()).append("\n");
         }
-        return v_Str;
+        return v_Str.append(this.m_Deck.size());
     }
 
     @Override

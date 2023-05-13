@@ -1,58 +1,113 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class BlackJack {
-    private final Integer LIMIT_POINTS = 21;
     private final Deck m_Deck;
-    private final ArrayList<Card> m_PlayerHand;
-    private Integer m_Points;
 
-    BlackJack() {
+    private final List<Player> m_Players;
+
+    private final int m_NumOfPlayers;
+
+    private int m_Turn;
+
+    BlackJack(int p_Players) {
+        this.m_Turn = 0;
+        this.m_NumOfPlayers = p_Players;
         this.m_Deck = new Deck();
-        this.m_PlayerHand = new ArrayList<>();
-        this.m_Points = 0;
+        this.m_Players = new ArrayList<>();
+
+        for (int i = 0; i < p_Players; i++)
+            this.m_Players.add(new Player());
 
         this.startGame();
     }
 
     private void startGame() {
         this.m_Deck.shuffle();
-        this.drawCard();
-        this.drawCard();
+
+        for (Player c_Player : this.m_Players) {
+            c_Player.drawCard(this.m_Deck);
+            c_Player.drawCard(this.m_Deck);
+        }
     }
 
-    public String drawCard() {
-        Card v_Card = m_Deck.draw();
-        this.m_PlayerHand.add(v_Card);
-        this.m_Points += v_Card.getValue();
-
-        return v_Card.toString();
+    private String giveCardPlayer(Player p_Player) {
+        return p_Player.drawCard(this.m_Deck);
     }
 
-    public Integer getPoints() {
-        return m_Points;
+    private void skip() {
+        this.m_Turn++;
+        System.out.println(this.m_Turn);
+        if (this.m_Turn >= this.m_NumOfPlayers)
+            this.m_Turn = 0;
     }
 
-    public String checkPoints() {
-        if (m_Points > LIMIT_POINTS)
-            return "Pontuação: " + this.m_Points + "\nEstourou!";
-        else if (m_Points < LIMIT_POINTS)
-            return "Pontuação: " + this.m_Points + "\nAbaixo de 21.";
+    public String stop() {
+        Player v_PlayerTurn = this.m_Players.get(this.m_Turn);
+        v_PlayerTurn.m_Playing = false;
 
-        return "BLACKJACK!!";
-    }
-
-    public StringBuilder showPlayerHand() {
-        StringBuilder v_Str = new StringBuilder();
-        if (m_PlayerHand.isEmpty())
-            return v_Str.append("Sua mão está vazia");
-
-        for (Card c_Card : m_PlayerHand)
-            v_Str.append(c_Card.toString()).append("\n");
+        String v_Str = "Jogador " + (this.m_Turn + 1) + " parou";
+        skip();
 
         return v_Str;
     }
 
+    public String drawCard() {
+        Player v_PlayerTurn = this.m_Players.get(this.m_Turn);
+
+        if (!v_PlayerTurn.m_Playing){
+            skip();
+            return "Jogador\n" + v_PlayerTurn + "Parou";
+        }
+
+        return giveCardPlayer(v_PlayerTurn);
+    }
+
+    public int getPoints() {
+        Player v_PlayerTurn = this.m_Players.get(this.m_Turn);
+
+        return  v_PlayerTurn.getPoints();
+    }
+
+    public String checkPoints() {
+        Player v_PlayerTurn = this.m_Players.get(this.m_Turn);
+        int LIMIT_POINTS = 21;
+
+        if (v_PlayerTurn.getPoints() > LIMIT_POINTS){
+            v_PlayerTurn.m_Playing = false;
+            return "Pontuação: " + v_PlayerTurn.getPoints() + "\nEstourou!";
+
+        }
+        else if(v_PlayerTurn.getPoints() < LIMIT_POINTS) {
+            return "Pontuação: " + v_PlayerTurn.getPoints() + "\nAbaixo de 21.";
+        }
+
+        skip();
+        return "BLACKJACK!!";
+    }
+
+    public String showPlayerHand() {
+        Player v_PlayerTurn = this.m_Players.get(this.m_Turn);
+
+        return new String(v_PlayerTurn.showPlayerHand());
+    }
+
+    public String skipTurn() {
+        skip();
+
+        return "Jogador " + this.m_Turn + " pulou a vez";
+    }
+
     public String showDeck() {
         return m_Deck.toString();
+    }
+
+    public String info() {
+        Player v_PlayerTurn = this.m_Players.get(this.m_Turn);
+        StringBuilder v_Str = new StringBuilder();
+        v_Str.append("Jogador ").append(this.m_Turn + 1).append("\n");
+        v_Str.append(v_PlayerTurn.toString());
+
+        return new String(v_Str);
     }
 }
